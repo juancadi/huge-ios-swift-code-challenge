@@ -1,0 +1,6 @@
+framework module Pods_HugeCurrencyConverterTests {
+  umbrella header "Pods-HugeCurrencyConverterTests-umbrella.h"
+
+  export *
+  module * { export * }
+}
