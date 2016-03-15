@@ -133,7 +133,7 @@ class ViewController: UIViewController, UITextFieldDelegate, ChartViewDelegate {
                     
                 }else {
                     
-                    let networkAlert = UIAlertController(title: "Ops!", message: "Internet connection is not detected, please check it and try again.", preferredStyle: UIAlertControllerStyle.Alert)
+                    let networkAlert = UIAlertController(title: "Ooops!", message: "Internet connection is not detected, please check it and try again.", preferredStyle: UIAlertControllerStyle.Alert)
                     networkAlert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
                     self.presentViewController(networkAlert, animated: true, completion: nil)
                     
@@ -143,7 +143,7 @@ class ViewController: UIViewController, UITextFieldDelegate, ChartViewDelegate {
             
         }else{
         
-            let fieldEmptyAlert = UIAlertController(title: "Ops!", message: "You should enter a value to process the currency convertion.", preferredStyle: UIAlertControllerStyle.Alert)
+            let fieldEmptyAlert = UIAlertController(title: "Ooops!", message: "You should enter a value to process the currency convertion.", preferredStyle: UIAlertControllerStyle.Alert)
             fieldEmptyAlert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
             self.presentViewController(fieldEmptyAlert, animated: true, completion: nil)
         
