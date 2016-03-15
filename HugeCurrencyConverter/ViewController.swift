@@ -19,7 +19,6 @@ class ViewController: UIViewController, UITextFieldDelegate, ChartViewDelegate {
     @IBOutlet weak var contentScrollView: UIView!
     @IBOutlet weak var contentScrollWidth: NSLayoutConstraint!
     
-    //var months: [String]!
    
     var hScroll : CGFloat = 0
     var wScroll : CGFloat = 0
@@ -48,7 +47,6 @@ class ViewController: UIViewController, UITextFieldDelegate, ChartViewDelegate {
         
         txtUSD.delegate = self
         barChartView.delegate = self
-        //showChart(currencyData)
         barChartView.hidden = true
         
     }
@@ -59,93 +57,103 @@ class ViewController: UIViewController, UITextFieldDelegate, ChartViewDelegate {
     }
     
     
+    //Hide the keyboard when the key "Done" is pressed
     @IBAction func textFieldDoneEditing(sender: UITextField) {
         
         sender.resignFirstResponder()
     }
     
+    //Hide the keyboard when the view in background is tapped
     @IBAction func backgroundTap(sender: UIControl) {
         
         txtUSD.resignFirstResponder()
     }
     
-    
+    //Logic implemented to get an http response, process it and update the UI with the currency convertions
     @IBAction func convertUSD(sender: AnyObject) {
         
-        if !txtUSD.text!.isEmpty{
-        
-        if exchangeRatesAvailables {
-        
-            loadCurrencyItems(currencyData)
-        
-        }else {
+        if !txtUSD.text!.isEmpty
+        {
             
-            networkUtil = Network()
-        
-            if networkUtil.isConnectedToNetwork(){
+            if exchangeRatesAvailables
+            {
                 
-                self.activityIndicatorView = ActivityIndicatorView(title: "In Progress...", center: self.view.center)
-                self.view.addSubview(self.activityIndicatorView.getViewActivityIndicator())
-                self.activityIndicatorView.startAnimating()
-            
-            
-                Alamofire.request(.GET, currencyUrl, parameters: currencyParameters)
-                    .validate(statusCode: 200..<300)
-                    .responseJSON { response in
-                        
-                        switch response.result {
+                loadCurrencyItems(currencyData)
+                
+            }else{
+                
+                networkUtil = Network()
+                
+                if networkUtil.isConnectedToNetwork(){
+                    
+                    self.activityIndicatorView = ActivityIndicatorView(title: "In Progress...", center: self.view.center)
+                    self.view.addSubview(self.activityIndicatorView.getViewActivityIndicator())
+                    self.activityIndicatorView.startAnimating()
+                    
+                    //Getting http response from https://api.fixer.io/latest
+                    Alamofire.request(.GET, currencyUrl, parameters: currencyParameters)
+                        .validate(statusCode: 200..<300)
+                        .responseJSON { response in
                             
-                        case .Success:
-                            
-                            if let value = response.result.value {
+                            switch response.result {
                                 
-                                let jsonCurrency = JSON(value)
-                                //print("\n\n JSON Reports: \(jsonReports)\n\n")
-                                self.barChartView.descriptionText = jsonCurrency["date"].stringValue
+                            case .Success:
                                 
-                                for var i = 0; i < self.currencyData.count; i++ {
+                                if let value = response.result.value {
                                     
-                                    self.currencyData[i].rate = jsonCurrency["rates"][self.currencyData[i].id].doubleValue
+                                    let jsonCurrency = JSON(value)
+                                    self.barChartView.descriptionText = jsonCurrency["date"].stringValue
+                                    
+                                    for var i = 0; i < self.currencyData.count; i++ {
+                                        
+                                        self.currencyData[i].rate = jsonCurrency["rates"][self.currencyData[i].id].doubleValue
+                                        
+                                    }
+                                    
+                                    self.exchangeRatesAvailables = true
+                                    self.activityIndicatorView.stopAnimating()
+                                    
+                                    //Updating UI from background process
+                                    dispatch_async(dispatch_get_main_queue()) {
+                                        
+                                        self.barChartView.hidden = false
+                                        self.showChart(self.currencyData)
+                                        self.loadCurrencyItems(self.currencyData)
+                                        
+                                    }
                                     
                                 }
                                 
-                                self.exchangeRatesAvailables = true
-                                self.activityIndicatorView.stopAnimating()
                                 
-                                dispatch_async(dispatch_get_main_queue()) {
-                                    
-                                    self.barChartView.hidden = false
-                                    self.showChart(self.currencyData)
-                                    self.loadCurrencyItems(self.currencyData)
-                                
-                                }
+                            case .Failure(let error):
+                                print(error)
                                 
                             }
-                            
-                            
-                        case .Failure(let error):
-                            print(error)
-                            
-                        }
+                    }
+                    
+                }else {
+                    
+                    let networkAlert = UIAlertController(title: "Ops!", message: "Internet connection is not detected, please check it and try again.", preferredStyle: UIAlertControllerStyle.Alert)
+                    networkAlert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
+                    self.presentViewController(networkAlert, animated: true, completion: nil)
+                    
                 }
-            
-            }else {
-            
-                let alert = UIAlertController(title: "Ops!", message: "Internet connection is not detected, please check it and try again.", preferredStyle: UIAlertControllerStyle.Alert)
-                alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
-                self.presentViewController(alert, animated: true, completion: nil)
                 
             }
-        
-        }
             
+        }else{
+        
+            let fieldEmptyAlert = UIAlertController(title: "Ops!", message: "You should enter a value to process the currency convertion.", preferredStyle: UIAlertControllerStyle.Alert)
+            fieldEmptyAlert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
+            self.presentViewController(fieldEmptyAlert, animated: true, completion: nil)
+        
         }
         
         
     }
     
     
-    
+    //Configuring and setting Bar Chart with the currency convertion rates
     func showChart(currencyData: [Currency]) {
         
         barChartView.noDataText = "Please enter any number of dollar bills, to calculate the exchange rate."
@@ -175,7 +183,7 @@ class ViewController: UIViewController, UITextFieldDelegate, ChartViewDelegate {
         print("\(entry.value) in \(currencyData[entry.xIndex])")
     }
     
-    
+    //Showing additional information about currency convertion values
     func loadCurrencyItems(items : [Currency]){
         
         hScroll = currencyItemsContentView.bounds.height
@@ -186,8 +194,7 @@ class ViewController: UIViewController, UITextFieldDelegate, ChartViewDelegate {
         
         for var i=0 ; i<items.count; i++ {
             
-            //Se contruye la vista y se adiciona al ContentView
-            
+            //Building a CustomView an adding it to the ContentView
             let cellCurrencyItem = CurrencyItemView.init(frame: CGRect(x: wScroll*CGFloat(i), y: 0, width: wScroll, height: hScroll))
             cellCurrencyItem.lblTitle.text = items[i].name
             cellCurrencyItem.lblRate.text = "Rate: \(items[i].rate.asLocaleCurrency(items[i].localIdentifier))"

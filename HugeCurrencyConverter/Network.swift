@@ -33,9 +33,6 @@ class Network {
         let isReachable = flags == .Reachable
         let needsConnection = flags == .ConnectionRequired
         
-        //print("\n >>> isConnectedToNetwork() >> isReachable = \(isReachable)")
-        //print("\n >>> isConnectedToNetwork() >> needsConnection = \(needsConnection)")
-        //return isReachable && !needsConnection
         
         return !needsConnection
         
